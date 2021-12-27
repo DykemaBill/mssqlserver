@@ -197,7 +197,7 @@ function SQLCustom() {
 function SQLOptions {
     Write-Output "`nPlease use the following format to run a long running query against a table:"
     Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Cred [AD]|[user:pass] --SortTest [SQLDatabase] [SQLTable]"
-    Write-Output "`nPlease use the following format to if you have added a custom query to this script:"
+    Write-Output "`nPlease use the following format if you have a custom query in a SQL file to run:"
     Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Cred [AD]|[user:pass] --Custom [SQLDatabase] [SQLFileName]"
     Write-Output "`nPlease use the following format to list tables in a database:"
     Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Cred [AD]|[user:pass] --Tables [SQLDatabase]`n"
