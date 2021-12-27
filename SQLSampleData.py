@@ -1,3 +1,21 @@
+# ====================================================================================
+#  Purpose     : Microsoft SQL Server test data population
+#                
+#  Created By  : Dykema, Bill
+#  Date        : 2021-12-27
+# ====================================================================================
+#  2021-12-27 - Dykema, Bill - initial version
+# ====================================================================================
+
+# Setup variables
+mssql_account = "sa"
+mssql_password = "SQLdev2019!"
+mssql_server = "localhost:1433"
+mssql_driver = "ODBC+Driver+17+for+SQL+Server"
+mssql_database = "testdb"
+mssql_table = "testtable"
+
+# Libraries
 # Pandas for dataframe manipulation
 import pandas as pd
 # Used to get the current date/time
@@ -45,19 +63,15 @@ now_stamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 print(now_stamp + ": Field types we just created:")
 print(df_sampledata.convert_dtypes().dtypes)
 
-# Database to create
-mssql_database = "testdb"
 # Connection string
-db_connection = 'mssql+pyodbc://sa:SQLdev2019!@localhost:1433/' + mssql_database + '?driver=ODBC+Driver+17+for+SQL+Server'
+db_connection = 'mssql+pyodbc://' + mssql_account + ':' + mssql_password + '@' + mssql_server + '/' + mssql_database + '?driver=' + mssql_driver
 # Database connection
 db_inst = create_engine(db_connection, fast_executemany=True)
 # Create database if it does not already exist
 if not database_exists(db_inst.url):
     create_database(db_inst.url)
-# SQL Server table to use
-mssql_table = "testtable"
 
-# Optional drop table
+# Optional drop existing table
 # now_stamp = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 # print(now_stamp + ": Dropping existing Microsoft SQL Server table")
 # mssql_drop = "DROP TABLE %s" % (str(mssql_table))
