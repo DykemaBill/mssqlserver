@@ -3,12 +3,12 @@
 # docker exec -it <container_id|container_name> /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <your_password>
 # docker exec -u 0 <container_id|container_name> bash -c "chown mssql /var/opt/mssql"
 
-# Using sqldev as sa password for development only
+# Using SQLdev2019! as sa password for development only
 version: '3.7'
 
 services:
 
-# SQL Server
+# SQL Server 2019 Developer
   microsoft_sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: mssql
