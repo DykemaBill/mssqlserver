@@ -10,19 +10,28 @@
 # ====================================================================================
 #  Notes       : To use this script you must have the PowerShell SqlServer module,
 #              : to install, run the following from PowerShell:
-#              :     Install-Module -Name SqlServer
+#              :     Install-Module -Name SqlServer -Scope CurrentUser
 # ====================================================================================
  
 # Setup variables
 $ScriptName = $MyInvocation.MyCommand
 $RunDir = "$(Get-Location)"
-$LogFile = "$($RunDir)\SQLTest_$($env:COMPUTERNAME)"
+$LogFile = "$($RunDir)\SQLTest.log"
  
 # SQL connection
 function GetSqlConnection
 {
-    $SQLConnString = "Server=$SQLServerInstance; database=$SQLDB;" +
-                     " Integrated Security=True;"
+    if ($AuthIntegrated)
+    {
+        $SQLConnString = "Server=$SQLServerInstance; database=$SQLDB;" +
+                         " Integrated Security=True;"
+    } else {
+        $SQLUser = ($Cred -split ":")[0]
+        $SQLPass = ($Cred -split ":")[1]
+        $SQLConnString = "Server=$SQLServerInstance; database=$SQLDB;" +
+                         " User ID = $SQLUser; Password = $SQLPass;"
+    }
+    
     try
         {
             $SQLConnReturn = New-Object System.Data.SqlClient.SqlConnection
@@ -63,6 +72,8 @@ function SQLTables() {
          [Parameter(Mandatory=$true, Position=0)]
          [string] $SQLServerInstance,
          [Parameter(Mandatory=$true, Position=1)]
+         [string] $Cred,
+         [Parameter(Mandatory=$true, Position=2)]
          [string] $SQLDB
     )
  
@@ -100,8 +111,10 @@ function SQLTest() {
          [Parameter(Mandatory=$true, Position=0)]
          [string] $SQLServerInstance,
          [Parameter(Mandatory=$true, Position=1)]
+         [string] $Cred,
+         [Parameter(Mandatory=$true, Position=2)]
          [string] $SQLDB,
-         [Parameter(Mandatory=$true, Position=1)]
+         [Parameter(Mandatory=$true, Position=3)]
          [string] $SQLTable
     )
  
@@ -157,8 +170,10 @@ function SQLCustom() {
          [Parameter(Mandatory=$true, Position=0)]
          [string] $SQLServerInstance,
          [Parameter(Mandatory=$true, Position=1)]
+         [string] $Cred,
+         [Parameter(Mandatory=$true, Position=2)]
          [string] $SQLDB,
-         [Parameter(Mandatory=$true, Position=1)]
+         [Parameter(Mandatory=$true, Position=3)]
          [string] $SQLQueryFile
     )
  
@@ -181,26 +196,29 @@ function SQLCustom() {
  
 function SQLOptions {
     Write-Output "`nPlease use the following format to run a long running query against a table:"
-    Write-Output "`t$ScriptName [SQLServer\SQLInstance] --SortTest [SQLDatabase] [SQLTable]"
+    Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Cred [AD]|[user:pass] --SortTest [SQLDatabase] [SQLTable]"
     Write-Output "`nPlease use the following format to if you have added a custom query to this script:"
-    Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Custom [SQLDatabase] [SQLFileName]"
+    Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Cred [AD]|[user:pass] --Custom [SQLDatabase] [SQLFileName]"
     Write-Output "`nPlease use the following format to list tables in a database:"
-    Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Tables [SQLDatabase]`n"
+    Write-Output "`t$ScriptName [SQLServer\SQLInstance] --Cred [AD]|[user:pass] --Tables [SQLDatabase]`n"
 }
 # Read arguments provided
-if (!$args.length -gt 0) { # Not enough options provided
+if ($args.length -lt 5) { # Not enough options provided
     SQLOptions
-} elseif ($args.length -eq 3) { # Database list tables
-    if ($args[1] -eq "--Tables") {
-        SQLTables -SQLServerInstance $args[0] -SQLDB $args[2]
+} elseif ($args.length -eq 5) { # Database list tables
+    if (($args[1] -eq "--Cred") -and ($args[3] -eq "--Tables")) {
+        if ($args[2] -eq "AD") {$AuthIntegrated = $true }
+        SQLTables -SQLServerInstance $args[0] -Cred $args[2] -SQLDB $args[4]
     } else { # Not valid option
         SQLOptions
     }
-} elseif ($args.length -eq 4) { # Database table sort test or custom
-    if ($args[1] -eq "--SortTest") {
-        SQLTest -SQLServerInstance $args[0] -SQLDB $args[2] -SQLTable $args[3]
-    } elseif ($args[1] -eq "--Custom") {
-        SQLCustom -SQLServerInstance $args[0] -SQLDB $args[2] -SQLQueryFile $args[3]
+} elseif ($args.length -eq 6) { # Database table sort test or custom
+    if (($args[1] -eq "--Cred") -and ($args[3] -eq "--SortTest")) {
+        if ($args[2] -eq "AD") {$AuthIntegrated = $true }
+        SQLTest -SQLServerInstance $args[0] -Cred $args[2] -SQLDB $args[4] -SQLTable $args[5]
+    } elseif (($args[1] -eq "--Cred") -and ($args[3] -eq "--Custom")) {
+        if ($args[2] -eq "AD") {$AuthIntegrated = $true }
+        SQLCustom -SQLServerInstance $args[0] -Cred $args[2] -SQLDB $args[4] -SQLQueryFile $args[5]
     } else { # Not valid option
         SQLOptions
     }
