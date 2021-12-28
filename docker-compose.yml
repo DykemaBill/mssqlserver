@@ -22,4 +22,4 @@ services:
       MSSQL_DATA_DIR: /var/opt/mssql/data
       MSSQL_LOG_DIR: /var/opt/mssql/log
     volumes:
-      - ./mssql-volume:/var/opt/mssql
+      - ./mssql-volume:/var/opt/mssql/data
