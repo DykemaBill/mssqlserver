@@ -1,14 +1,16 @@
 # Docker compose command
-# sudo docker compose up -d
-# docker exec -it <container_id|container_name> /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <your_password>
-# docker exec -u 0 <container_id|container_name> bash -c "chown mssql /var/opt/mssql"
+## docker compose up -d
 
-# Using SQLdev2019! as sa password for development only
+# The following exec commands work with SQL Server, but not Azure SQL
+## docker exec -it <container_id|container_name> /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P <your_password>
+## docker exec -u 0 <container_id|container_name> bash -c "chown mssql /var/opt/mssql"
+
+# Version
 version: '3.7'
 
 services:
 
-# SQL Server 2019 Developer
+# SQL Server 2019 Developer (does not work under macOS M series)
   microsoft_sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest
     container_name: mssql
@@ -23,3 +25,14 @@ services:
       MSSQL_LOG_DIR: /var/opt/mssql/log
     volumes:
       - ./mssql-volume:/var/opt/mssql/data
+
+# Azure SQL Edge (does not work with volume mounted)
+  azure_sql:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: azuresql
+    ports:
+      - 1433:1433
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: SQLdev2023!
+      MSSQL_PID: Developer
